@@ -9,11 +9,7 @@ const io = require('socket.io')(http, {
 })
 
 io.on('connection', (socket) => {
-    // const id = socket.handshake.query
-    // console.log(id)
-
     socket.on('post', ({ roomNum, ...rest }) => {
-        // console.log(`post-${roomNum}`)
         io.emit(`new-post-${roomNum}`, rest)
     })
 })

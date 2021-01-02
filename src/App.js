@@ -22,24 +22,30 @@ function App() {
     }, [])
 
     useEffect(() => {
-        if (socket) {
-            if (!connected) {
-                socket.on('connect', () => {
-                    setConnected(true)
-                })
-            }
+        if (!socket) return
 
-            socket.on(`new-post-${roomNum}`, (event) => {
-                if (connected) {
-                    console.log(event)
-                }
+        if (!connected) {
+            socket.on('connect', () => {
+                setConnected(true)
             })
         }
+
+        // listen to new post event (with room number)
+        socket.on(`new-post-${roomNum}`, (event) => {
+            if (connected) {
+                console.log(event)
+            }
+        })
     })
+
+    const changeRoom = (newRoomNum) => {
+        if (!socket || !connected) return
+        socket.off(`new-post-${roomNum}`) // unsubscribe from the last room Number
+        setRoomNum(newRoomNum) // subscribing to the new room number
+    }
 
     const emitMsg = () => {
         if (connected) {
-            console.log(roomNum)
             socket.emit('post', {
                 msg: 'Hello, World!',
                 clientNum,
@@ -51,28 +57,19 @@ function App() {
     return (
         <div className="App">
             <header className="App-header">
+                <h1>Room number: {roomNum}</h1>
                 <img src={logo} className="App-logo" alt="logo" />
-                <p>
-                    Edit <code>src/App.js</code> and save to reload.
-                </p>
-                <a
-                    className="App-link"
-                    href="https://reactjs.org"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    Learn React
-                </a>
-                <button style={{ marginTop: 16 }} onClick={emitMsg}>
+                <p>See console to view changes.</p>
+                <button style={{ marginTop: 8 }} onClick={emitMsg}>
                     Emit msg.
                 </button>
                 <button
                     style={{ marginTop: 16 }}
                     onClick={() => {
-                        setRoomNum(1)
+                        changeRoom(roomNum + 1)
                     }}
                 >
-                    Change room.
+                    Go to room 1.
                 </button>
             </header>
         </div>
