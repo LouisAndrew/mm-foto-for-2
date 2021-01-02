@@ -1,35 +1,50 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { io } from 'socket.io-client'
 
 import logo from './logo.svg'
 import './App.css'
 
-const socket = io.connect('http://localhost:4000')
-
 function App() {
     // connect to socket io here.
+    const [socket, setSocket] = useState(null)
     const [clientNum, setClientNum] = useState(0)
+    const [roomNum, setRoomNum] = useState(0)
     const [connected, setConnected] = useState(false)
 
     useEffect(() => {
         setClientNum(Math.round(Math.random() * 10))
+        const newSocket = io.connect('http://localhost:4000')
+        setSocket(newSocket)
+
+        return () => {
+            newSocket.close()
+        }
     }, [])
 
-    socket.on('connect', () => {
-        if (!connected) {
-            setConnected(true)
-        }
-    })
+    useEffect(() => {
+        if (socket) {
+            if (!connected) {
+                socket.on('connect', () => {
+                    setConnected(true)
+                })
+            }
 
-    socket.on('message', (event) => {
-        if (connected) {
-            console.log(event)
+            socket.on(`new-post-${roomNum}`, (event) => {
+                if (connected) {
+                    console.log(event)
+                }
+            })
         }
     })
 
     const emitMsg = () => {
         if (connected) {
-            socket.emit('post', { msg: 'Hello, World!', clientNum, roomNum: 0 })
+            console.log(roomNum)
+            socket.emit('post', {
+                msg: 'Hello, World!',
+                clientNum,
+                roomNum: roomNum,
+            })
         }
     }
 
@@ -50,6 +65,14 @@ function App() {
                 </a>
                 <button style={{ marginTop: 16 }} onClick={emitMsg}>
                     Emit msg.
+                </button>
+                <button
+                    style={{ marginTop: 16 }}
+                    onClick={() => {
+                        setRoomNum(1)
+                    }}
+                >
+                    Change room.
                 </button>
             </header>
         </div>

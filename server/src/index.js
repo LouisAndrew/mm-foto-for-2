@@ -9,7 +9,13 @@ const io = require('socket.io')(http, {
 })
 
 io.on('connection', (socket) => {
-    socket.on('post', ({ roomNum, ...rest }) => {})
+    // const id = socket.handshake.query
+    // console.log(id)
+
+    socket.on('post', ({ roomNum, ...rest }) => {
+        // console.log(`post-${roomNum}`)
+        io.emit(`new-post-${roomNum}`, rest)
+    })
 })
 
 const PORT = 4000
