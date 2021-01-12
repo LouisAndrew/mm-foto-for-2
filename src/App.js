@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
-// import { io } from 'socket.io-client'
+import { io } from 'socket.io-client'
 
 import DEFAULT_OPTIONS from './options'
 
@@ -13,12 +13,18 @@ function App() {
     const [options, setOptions] = useState(DEFAULT_OPTIONS)
     const selectedOption = options[selectedOptionIndex]
 
-    /* const [socket, setSocket] = useState(null)
-    const [clientNum, setClientNum] = useState(0)
-    const [roomNum, setRoomNum] = useState(0)
-    const [connected, setConnected] = useState(false) */
+    const [filter, setFilter] = useState(getImageStyle(DEFAULT_OPTIONS))
+    const [filterSnapshot, setFilterSnapshot] = useState() // snapshot of filter
 
-    /* useEffect(() => {
+    const [socket, setSocket] = useState(null)
+    const [_, setClientNum] = useState(0)
+    const [roomNum, setRoomNum] = useState(0)
+    const [connected, setConnected] = useState(false)
+
+    useEffect(() => {
+        console.log(_)
+        console.log(setRoomNum)
+
         setClientNum(Math.round(Math.random() * 10))
         const newSocket = io.connect('http://localhost:4000')
         setSocket(newSocket)
@@ -45,6 +51,21 @@ function App() {
         })
     })
 
+    useEffect(() => {
+        setFilter(getImageStyle(options))
+    }, [options])
+
+    useEffect(() => {
+        if (connected && filter !== filterSnapshot) {
+            console.log('a')
+
+            socket.emit('filter-change', {
+                filter,
+                roomNum,
+            })
+        }
+    }, [filter])
+
     const changeRoom = (newRoomNum) => {
         if (!socket || !connected) return
         socket.off(`new-post-${roomNum}`) // unsubscribe from the last room Number
@@ -59,7 +80,7 @@ function App() {
                 roomNum: roomNum,
             })
         }
-    } */
+    }
 
     function handleSliderChange({ target }) {
         setOptions((prevOptions) => {
@@ -85,7 +106,7 @@ function App() {
 
     return (
         <div className="container">
-            <div className="main-image" style={getImageStyle()} />{' '}
+            <div className="main-image" style={filter} />{' '}
             <div className="sidebar">
                 {' '}
                 {options.map((option, index) => {

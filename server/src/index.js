@@ -48,6 +48,11 @@ io.on('connection', (socket) => {
 
         io.emit(`new-post-${roomNum}`, { rest, counter: room[roomNum].counter })
     })
+
+    socket.on('filter-change', ({ roomNum, ...rest }) => {
+        console.log({ roomNum, rest })
+        io.emit(`filter-change-${roomNum}`, rest)
+    })
 })
 
 const PORT = 4000
