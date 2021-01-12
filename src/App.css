@@ -22,12 +22,15 @@ body {
 
 .main-image {
     grid-area: image;
-    /* background-image: url(https://i.redd.it/h4icwmx1wh851.png); */
     width: 100%;
     height: auto;
     background-position: top center;
     background-size: contain;
     background-repeat: no-repeat;
+
+    margin: auto 0;
+    padding: 0 16px;
+    border-radius: 16px;
 }
 
 .sidebar {
