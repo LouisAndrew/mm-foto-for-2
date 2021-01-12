@@ -112,37 +112,6 @@ function App() {
         }
     }
 
-    // /**
-    //  * Get the current counter of a room
-    //  * @param {Object} socketObj
-    //  */
-    // const getRoomCounter = (socketObj) => {
-    //     socketObj.emit('get-content', {
-    //         roomNum,
-    //     })
-
-    //     socketObj.on('receive-content', (event) => {
-    //         setCounter(event.counter)
-    //         socketObj.off('receive-content')
-    //     })
-    // }
-
-    // const changeRoom = (newRoomNum) => {
-    //     if (!socket || !connected) return
-    //     socket.off(`new-post-${roomNum}`) // unsubscribe from the last room Number
-    //     setRoomNum(newRoomNum) // subscribing to the new room number
-    // }
-
-    // const emitMsg = () => {
-    //     if (connected) {
-    //         socket.emit('post', {
-    //             msg: 'Hello, World!',
-    //             clientNum,
-    //             roomNum: roomNum,
-    //         })
-    //     }
-    // }
-
     function handleSliderChange({ target }) {
         setOptions((prevOptions) => {
             return prevOptions.map((option, index) => {
@@ -183,7 +152,6 @@ function App() {
                     )
                 })}{' '}
             </div>{' '}
-            <button onClick={emitChanges}>Emit changes</button>
             <Slider
                 min={selectedOption.range.min}
                 max={selectedOption.range.max}
