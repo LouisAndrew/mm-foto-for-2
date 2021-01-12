@@ -13,21 +13,39 @@ function App() {
     const [options, setOptions] = useState(DEFAULT_OPTIONS)
     const selectedOption = options[selectedOptionIndex]
 
-    const [filter, setFilter] = useState(getImageStyle(DEFAULT_OPTIONS))
-    const [filterSnapshot, setFilterSnapshot] = useState() // snapshot of filter
+    // const [filterSnapshot, setFilterSnapshot] = useState({}) // snapshot of filter
 
     const [socket, setSocket] = useState(null)
-    const [_, setClientNum] = useState(0)
+    const [clientNum, setClientNum] = useState(0)
     const [roomNum, setRoomNum] = useState(0)
     const [connected, setConnected] = useState(false)
 
+    const [isFocusing, setIsFocusing] = useState(false)
+    // const [isEditing, setIsEditing] = useState(false)
+    const [shouldDisable, setShouldDisable] = useState(false)
+
     useEffect(() => {
-        console.log(_)
         console.log(setRoomNum)
 
-        setClientNum(Math.round(Math.random() * 10))
         const newSocket = io.connect('http://localhost:4000')
         setSocket(newSocket)
+        getClientNum(newSocket, (clientNum) => {
+            newSocket.on(`filter-change-${roomNum}`, (ev) => {
+                if (ev !== options) {
+                    setOptions(ev)
+                }
+            })
+
+            newSocket.on(`on-focus-${roomNum}`, (ev) => {
+                if (ev === -1) {
+                    setShouldDisable(false)
+                } else if (ev !== clientNum) {
+                    if (!shouldDisable) {
+                        setShouldDisable(true)
+                    }
+                }
+            })
+        })
 
         return () => {
             newSocket.close()
@@ -42,45 +60,88 @@ function App() {
                 setConnected(true)
             })
         }
-
-        // listen to new post event (with room number)
-        socket.on(`new-post-${roomNum}`, (event) => {
-            if (connected) {
-                console.log(event)
-            }
-        })
     })
 
     useEffect(() => {
-        setFilter(getImageStyle(options))
-    }, [options])
+        if (connected) {
+            getClientNum(socket)
+        }
+    }, [roomNum])
 
     useEffect(() => {
-        if (connected && filter !== filterSnapshot) {
-            console.log('a')
+        emitIsFocusing()
+    }, [isFocusing])
 
+    /**
+     * Get client number/id from the socket io
+     * @param {Object} socketObj: Socket IO Object
+     */
+    const getClientNum = (socketObj, onSuccess) => {
+        socketObj.emit('connect-room', {
+            roomNum,
+        })
+
+        socketObj.on('receive-id', (event) => {
+            setClientNum(event.clientNum)
+            socketObj.off('receive-id')
+            onSuccess(event.clientNum)
+        })
+    }
+
+    const emitChanges = () => {
+        if (connected) {
             socket.emit('filter-change', {
-                filter,
+                options,
                 roomNum,
             })
         }
-    }, [filter])
-
-    const changeRoom = (newRoomNum) => {
-        if (!socket || !connected) return
-        socket.off(`new-post-${roomNum}`) // unsubscribe from the last room Number
-        setRoomNum(newRoomNum) // subscribing to the new room number
     }
 
-    const emitMsg = () => {
+    const emitIsFocusing = () => {
         if (connected) {
-            socket.emit('post', {
-                msg: 'Hello, World!',
-                clientNum,
-                roomNum: roomNum,
+            const status = isFocusing ? clientNum : -1
+
+            socket.emit('on-focus', {
+                status,
+                roomNum,
             })
+
+            if (!isFocusing) {
+                emitChanges()
+            }
         }
     }
+
+    // /**
+    //  * Get the current counter of a room
+    //  * @param {Object} socketObj
+    //  */
+    // const getRoomCounter = (socketObj) => {
+    //     socketObj.emit('get-content', {
+    //         roomNum,
+    //     })
+
+    //     socketObj.on('receive-content', (event) => {
+    //         setCounter(event.counter)
+    //         socketObj.off('receive-content')
+    //     })
+    // }
+
+    // const changeRoom = (newRoomNum) => {
+    //     if (!socket || !connected) return
+    //     socket.off(`new-post-${roomNum}`) // unsubscribe from the last room Number
+    //     setRoomNum(newRoomNum) // subscribing to the new room number
+    // }
+
+    // const emitMsg = () => {
+    //     if (connected) {
+    //         socket.emit('post', {
+    //             msg: 'Hello, World!',
+    //             clientNum,
+    //             roomNum: roomNum,
+    //         })
+    //     }
+    // }
 
     function handleSliderChange({ target }) {
         setOptions((prevOptions) => {
@@ -106,7 +167,9 @@ function App() {
 
     return (
         <div className="container">
-            <div className="main-image" style={filter} />{' '}
+            {!shouldDisable && (
+                <div className="main-image" style={getImageStyle(options)} />
+            )}
             <div className="sidebar">
                 {' '}
                 {options.map((option, index) => {
@@ -120,11 +183,18 @@ function App() {
                     )
                 })}{' '}
             </div>{' '}
+            <button onClick={emitChanges}>Emit changes</button>
             <Slider
                 min={selectedOption.range.min}
                 max={selectedOption.range.max}
                 value={selectedOption.value}
                 handleChange={handleSliderChange}
+                handleMouseDown={() => {
+                    setIsFocusing(true)
+                }}
+                handleMouseUp={() => {
+                    setIsFocusing(false)
+                }}
             />{' '}
         </div>
     )

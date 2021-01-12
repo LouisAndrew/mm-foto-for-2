@@ -22,6 +22,7 @@ io.on('connection', (socket) => {
             room[roomNum] = {
                 clients: 1,
                 counter: 0,
+                options: {},
             }
         } else {
             room[roomNum].clients++ // Add more client if the room does exists.
@@ -49,9 +50,21 @@ io.on('connection', (socket) => {
         io.emit(`new-post-${roomNum}`, { rest, counter: room[roomNum].counter })
     })
 
-    socket.on('filter-change', ({ roomNum, ...rest }) => {
-        console.log({ roomNum, rest })
-        io.emit(`filter-change-${roomNum}`, rest)
+    socket.on('filter-change', ({ roomNum, options }) => {
+        if (!room[roomNum]) {
+            return
+        }
+
+        room[roomNum].options = options // setting room options.
+        io.emit(`filter-change-${roomNum}`, options)
+    })
+
+    socket.on('on-focus', ({ roomNum, status }) => {
+        if (!room[roomNum]) {
+            return
+        }
+
+        io.emit(`on-focus-${roomNum}`, status)
     })
 })
 
