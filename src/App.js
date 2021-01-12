@@ -162,19 +162,22 @@ function App() {
         <div className="container">
             {roomNum !== -1 ? (
                 <>
-                    {!shouldDisable ? (
-                        imgUrl ? (
+                    { imgUrl ? (
                             <img
                                 src={imgUrl}
                                 className="main-image"
                                 style={getImageStyle(options)}
                             />
                         ) : (
-                            <form onSubmit={submitImgUrl}>
+                            <div className="form-wrapper">
+                            <form className="login-wrapper" onSubmit={submitImgUrl}>
+                                <label htmlFor="img-url">Please add an Image URL:</label>
                                 <input id="img-url" type="text" />
+                                <button className="login-button" type="submit">Submit URL</button>
                             </form>
+                            </div>
                         )
-                    ) : null}
+                    }
                     <div className="sidebar">
                         {' '}
                         {options.map((option, index) => {
@@ -189,8 +192,26 @@ function App() {
                                 />
                             )
                         })}{' '}
+                        <div className="button-wrapper">
+                         <button className="button"
+                        onClick={() => {
+                            setRoomNum((r) => r + 1)
+                        }}
+                    >
+                        Next Room
+                    </button>
+                    { roomNum !== 1 && 
+                    <button className="button"
+                        onClick={() => {
+                            setRoomNum((r) => r - 1)
+                        }}
+                    >
+                        Previous Room
+                    </button>
+                    }
+                    </div>
                     </div>{' '}
-                    <Slider
+                    <Slider shouldDisable = {shouldDisable}
                         min={selectedOption.range.min}
                         max={selectedOption.range.max}
                         value={selectedOption.value}
@@ -202,13 +223,6 @@ function App() {
                             setIsFocusing(false)
                         }}
                     />{' '}
-                    <button
-                        onClick={() => {
-                            setRoomNum((r) => r + 1)
-                        }}
-                    >
-                        Next Room
-                    </button>
                 </>
             ) : (
                 <Login
