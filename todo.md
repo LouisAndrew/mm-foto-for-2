@@ -1,0 +1,4 @@
+-   Upload image
+-   Enter room + with password
+-   Realtime..
+-   No need to download.
