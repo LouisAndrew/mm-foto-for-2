@@ -1,17 +1,24 @@
-import React, { useEffect, useState } from 'react'
-import { io } from 'socket.io-client'
+import React, { useState } from 'react'
 
-import logo from './logo.svg'
+// import { io } from 'socket.io-client'
+
+import DEFAULT_OPTIONS from './options'
+
+import Slider from './components/Slider'
+import SidebarItem from './components/SidebarItem'
 import './App.css'
 
 function App() {
-    // connect to socket io here.
-    const [socket, setSocket] = useState(null)
+    const [selectedOptionIndex, setSelectedOptionIndex] = useState(0)
+    const [options, setOptions] = useState(DEFAULT_OPTIONS)
+    const selectedOption = options[selectedOptionIndex]
+
+    /* const [socket, setSocket] = useState(null)
     const [clientNum, setClientNum] = useState(0)
     const [roomNum, setRoomNum] = useState(0)
-    const [connected, setConnected] = useState(false)
+    const [connected, setConnected] = useState(false) */
 
-    useEffect(() => {
+    /* useEffect(() => {
         setClientNum(Math.round(Math.random() * 10))
         const newSocket = io.connect('http://localhost:4000')
         setSocket(newSocket)
@@ -52,26 +59,54 @@ function App() {
                 roomNum: roomNum,
             })
         }
+    } */
+
+    function handleSliderChange({ target }) {
+        setOptions((prevOptions) => {
+            return prevOptions.map((option, index) => {
+                if (index !== selectedOptionIndex) return option
+                return {
+                    ...option,
+                    value: target.value,
+                }
+            })
+        })
     }
 
+    function getImageStyle() {
+        const filters = options.map((option) => {
+            return `${option.property}(${option.value}${option.unit})`
+        })
+
+        return {
+            filter: filters.join(' '),
+        }
+    }
+
+    console.log(getImageStyle())
+
     return (
-        <div className="App">
-            <header className="App-header">
-                <h1>Room number: {roomNum}</h1>
-                <img src={logo} className="App-logo" alt="logo" />
-                <p>See console to view changes.</p>
-                <button style={{ marginTop: 8 }} onClick={emitMsg}>
-                    Emit msg.
-                </button>
-                <button
-                    style={{ marginTop: 16 }}
-                    onClick={() => {
-                        changeRoom(roomNum + 1)
-                    }}
-                >
-                    Go to room 1.
-                </button>
-            </header>
+        <div className="container">
+            <div className="main-image" style={getImageStyle()} />{' '}
+            <div className="sidebar">
+                {' '}
+                {options.map((option, index) => {
+                    return (
+                        <SidebarItem
+                            key={index}
+                            name={option.name}
+                            active={index === selectedOptionIndex}
+                            handleClick={() => setSelectedOptionIndex(index)}
+                        />
+                    )
+                })}{' '}
+            </div>{' '}
+            <Slider
+                min={selectedOption.range.min}
+                max={selectedOption.range.max}
+                value={selectedOption.value}
+                handleChange={handleSliderChange}
+            />{' '}
         </div>
     )
 }
