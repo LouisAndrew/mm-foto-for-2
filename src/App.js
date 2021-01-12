@@ -7,45 +7,26 @@ import DEFAULT_OPTIONS from './options'
 import Slider from './components/Slider'
 import SidebarItem from './components/SidebarItem'
 import './App.css'
+import Login from './components/Login'
 
 function App() {
     const [selectedOptionIndex, setSelectedOptionIndex] = useState(0)
     const [options, setOptions] = useState(DEFAULT_OPTIONS)
     const selectedOption = options[selectedOptionIndex]
 
-    // const [filterSnapshot, setFilterSnapshot] = useState({}) // snapshot of filter
-
     const [socket, setSocket] = useState(null)
     const [clientNum, setClientNum] = useState(0)
-    const [roomNum, setRoomNum] = useState(0)
+    const [roomNum, setRoomNum] = useState(-1)
     const [connected, setConnected] = useState(false)
 
     const [isFocusing, setIsFocusing] = useState(false)
-    // const [isEditing, setIsEditing] = useState(false)
     const [shouldDisable, setShouldDisable] = useState(false)
 
-    useEffect(() => {
-        console.log(setRoomNum)
+    const [imgUrl, setImgUrl] = useState('')
 
+    useEffect(() => {
         const newSocket = io.connect('http://localhost:4000')
         setSocket(newSocket)
-        getClientNum(newSocket, (clientNum) => {
-            newSocket.on(`filter-change-${roomNum}`, (ev) => {
-                if (ev !== options) {
-                    setOptions(ev)
-                }
-            })
-
-            newSocket.on(`on-focus-${roomNum}`, (ev) => {
-                if (ev === -1) {
-                    setShouldDisable(false)
-                } else if (ev !== clientNum) {
-                    if (!shouldDisable) {
-                        setShouldDisable(true)
-                    }
-                }
-            })
-        })
 
         return () => {
             newSocket.close()
@@ -63,8 +44,31 @@ function App() {
     })
 
     useEffect(() => {
-        if (connected) {
-            getClientNum(socket)
+        if (connected && roomNum !== -1) {
+            getClientNum(socket, (clientNum) => {
+                socket.on(`filter-change-${roomNum}`, (ev) => {
+                    if (ev !== options) {
+                        setOptions(ev)
+                    }
+                })
+
+                socket.on(`on-focus-${roomNum}`, (ev) => {
+                    if (ev === -1) {
+                        setShouldDisable(false)
+                    } else if (ev !== clientNum) {
+                        if (!shouldDisable) {
+                            setShouldDisable(true)
+                        }
+                    }
+                })
+
+                socket.on(`img-url-${roomNum}`, (ev) => {
+                    console.log(ev)
+                    if (!imgUrl) {
+                        setImgUrl(ev)
+                    }
+                })
+            })
         }
     }, [roomNum])
 
@@ -85,6 +89,14 @@ function App() {
             setClientNum(event.clientNum)
             socketObj.off('receive-id')
             onSuccess(event.clientNum)
+        })
+
+        socketObj.on('receive-data', (event) => {
+            setImgUrl(event.imgUrl)
+            if (event.options.length > 0) {
+                setOptions(event.options)
+            }
+            socketObj.off('receive-data')
         })
     }
 
@@ -134,36 +146,77 @@ function App() {
         }
     }
 
+    const submitImgUrl = (e) => {
+        e.preventDefault()
+
+        const newImgUrl = document.getElementById('img-url').value
+
+        setImgUrl(newImgUrl)
+        socket.emit('img-url', {
+            roomNum,
+            newImgUrl,
+        })
+    }
+
     return (
         <div className="container">
-            {!shouldDisable && (
-                <div className="main-image" style={getImageStyle(options)} />
+            {roomNum !== -1 ? (
+                <>
+                    {!shouldDisable ? (
+                        imgUrl ? (
+                            <img
+                                src={imgUrl}
+                                className="main-image"
+                                style={getImageStyle(options)}
+                            />
+                        ) : (
+                            <form onSubmit={submitImgUrl}>
+                                <input id="img-url" type="text" />
+                            </form>
+                        )
+                    ) : null}
+                    <div className="sidebar">
+                        {' '}
+                        {options.map((option, index) => {
+                            return (
+                                <SidebarItem
+                                    key={index}
+                                    name={option.name}
+                                    active={index === selectedOptionIndex}
+                                    handleClick={() =>
+                                        setSelectedOptionIndex(index)
+                                    }
+                                />
+                            )
+                        })}{' '}
+                    </div>{' '}
+                    <Slider
+                        min={selectedOption.range.min}
+                        max={selectedOption.range.max}
+                        value={selectedOption.value}
+                        handleChange={handleSliderChange}
+                        handleMouseDown={() => {
+                            setIsFocusing(true)
+                        }}
+                        handleMouseUp={() => {
+                            setIsFocusing(false)
+                        }}
+                    />{' '}
+                    <button
+                        onClick={() => {
+                            setRoomNum((r) => r + 1)
+                        }}
+                    >
+                        Next Room
+                    </button>
+                </>
+            ) : (
+                <Login
+                    goToRoom={(num) => {
+                        setRoomNum(num)
+                    }}
+                />
             )}
-            <div className="sidebar">
-                {' '}
-                {options.map((option, index) => {
-                    return (
-                        <SidebarItem
-                            key={index}
-                            name={option.name}
-                            active={index === selectedOptionIndex}
-                            handleClick={() => setSelectedOptionIndex(index)}
-                        />
-                    )
-                })}{' '}
-            </div>{' '}
-            <Slider
-                min={selectedOption.range.min}
-                max={selectedOption.range.max}
-                value={selectedOption.value}
-                handleChange={handleSliderChange}
-                handleMouseDown={() => {
-                    setIsFocusing(true)
-                }}
-                handleMouseUp={() => {
-                    setIsFocusing(false)
-                }}
-            />{' '}
         </div>
     )
 }

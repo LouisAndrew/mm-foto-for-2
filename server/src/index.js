@@ -11,10 +11,6 @@ const io = require('socket.io')(http, {
 // we can change this to an object with 10 rooms with each of its passwords and clients?
 let room = {}
 
-const updateCounter = (roomNum) => {
-    room[roomNum].counter++
-}
-
 io.on('connection', (socket) => {
     socket.on('connect-room', ({ roomNum }) => {
         if (!room[roomNum]) {
@@ -22,32 +18,15 @@ io.on('connection', (socket) => {
             room[roomNum] = {
                 clients: 1,
                 counter: 0,
-                options: {},
+                options: [],
+                imgUrl: '',
             }
         } else {
             room[roomNum].clients++ // Add more client if the room does exists.
         }
 
         io.emit('receive-id', { clientNum: room[roomNum].clients })
-    })
-
-    socket.on('get-content', ({ roomNum }) => {
-        if (!room[roomNum]) {
-            return
-        }
-
-        io.emit('receive-content', { counter: room[roomNum].counter })
-    })
-
-    socket.on('post', ({ roomNum, ...rest }) => {
-        if (!room[roomNum]) {
-            // do nothing if room does not exist
-            return
-        }
-
-        updateCounter(roomNum)
-
-        io.emit(`new-post-${roomNum}`, { rest, counter: room[roomNum].counter })
+        io.emit('receive-data', room[roomNum])
     })
 
     socket.on('filter-change', ({ roomNum, options }) => {
@@ -65,6 +44,11 @@ io.on('connection', (socket) => {
         }
 
         io.emit(`on-focus-${roomNum}`, status)
+    })
+
+    socket.on('img-url', ({ roomNum, newImgUrl }) => {
+        room[roomNum].imgUrl = newImgUrl
+        io.emit(`img-url-${roomNum}`, newImgUrl)
     })
 })
 
