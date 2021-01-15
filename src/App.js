@@ -185,19 +185,19 @@ function App() {
                         </div>
                     )}
                     <div className="sidebar">
-                        {' '}
-                        {options.map((option, index) => {
-                            return (
-                                <SidebarItem
-                                    key={index}
-                                    name={option.name}
-                                    active={index === selectedOptionIndex}
-                                    handleClick={() =>
-                                        setSelectedOptionIndex(index)
-                                    }
-                                />
-                            )
-                        })}{' '}
+                        {imgUrl &&
+                            options.map((option, index) => {
+                                return (
+                                    <SidebarItem
+                                        key={index}
+                                        name={option.name}
+                                        active={index === selectedOptionIndex}
+                                        handleClick={() =>
+                                            setSelectedOptionIndex(index)
+                                        }
+                                    />
+                                )
+                            })}
                         <div className="button-wrapper">
                             <button
                                 className="button"
@@ -219,19 +219,21 @@ function App() {
                             )}
                         </div>
                     </div>{' '}
-                    <Slider
-                        shouldDisable={shouldDisable}
-                        min={selectedOption.range.min}
-                        max={selectedOption.range.max}
-                        value={selectedOption.value}
-                        handleChange={handleSliderChange}
-                        handleMouseDown={() => {
-                            setIsFocusing(true)
-                        }}
-                        handleMouseUp={() => {
-                            setIsFocusing(false)
-                        }}
-                    />{' '}
+                    {imgUrl && (
+                        <Slider
+                            shouldDisable={shouldDisable}
+                            min={selectedOption.range.min}
+                            max={selectedOption.range.max}
+                            value={selectedOption.value}
+                            handleChange={handleSliderChange}
+                            handleMouseDown={() => {
+                                setIsFocusing(true)
+                            }}
+                            handleMouseUp={() => {
+                                setIsFocusing(false)
+                            }}
+                        />
+                    )}
                 </>
             ) : (
                 <Login
