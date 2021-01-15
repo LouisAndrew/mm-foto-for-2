@@ -8,6 +8,8 @@ const io = require('socket.io')(http, {
     },
 })
 
+const defaultOptions = require('./options')
+
 // we can change this to an object with 10 rooms with each of its passwords and clients?
 let room = {}
 
@@ -18,7 +20,7 @@ io.on('connection', (socket) => {
             room[roomNum] = {
                 clients: 1,
                 counter: 0,
-                options: [],
+                options: defaultOptions,
                 imgUrl: '',
             }
         } else {

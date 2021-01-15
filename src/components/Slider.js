@@ -11,17 +11,23 @@ export default function Slider({
 }) {
     return (
         <div className="slider-container">
-           { !shouldDisable && <input
-                type="range"
-                className="slider"
-                min={min}
-                max={max}
-                value={value}
-                disAbled={shouldDisable}
-                onChange={handleChange}
-                onMouseDown={handleMouseDown}
-                onMouseUp={handleMouseUp}
-            /> }
+            {!shouldDisable ? (
+                <input
+                    type="range"
+                    className="slider"
+                    min={min}
+                    max={max}
+                    value={value}
+                    disAbled={shouldDisable}
+                    onChange={handleChange}
+                    onMouseDown={handleMouseDown}
+                    onMouseUp={handleMouseUp}
+                />
+            ) : (
+                <h2 style={{ textAlign: 'center' }}>
+                    Someone is editing the image
+                </h2>
+            )}
         </div>
     )
 }
