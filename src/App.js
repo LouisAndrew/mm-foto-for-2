@@ -232,19 +232,21 @@ function App() {
                         </div>
                     </div>{' '}
                     {imgUrl && (
-                        <Slider
-                            shouldDisable={shouldDisable}
-                            min={selectedOption.range.min}
-                            max={selectedOption.range.max}
-                            value={selectedOption.value}
-                            handleChange={handleSliderChange}
-                            handleMouseDown={() => {
-                                setIsFocusing(true)
-                            }}
-                            handleMouseUp={() => {
-                                setIsFocusing(false)
-                            }}
-                        />
+                        <>
+                            <Slider
+                                shouldDisable={shouldDisable}
+                                min={selectedOption.range.min}
+                                max={selectedOption.range.max}
+                                value={selectedOption.value}
+                                handleChange={handleSliderChange}
+                                handleMouseDown={() => {
+                                    setIsFocusing(true)
+                                }}
+                                handleMouseUp={() => {
+                                    setIsFocusing(false)
+                                }}
+                            />
+                        </>
                     )}
                 </>
             ) : (
