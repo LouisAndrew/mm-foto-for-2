@@ -23,6 +23,7 @@ function App() {
     const [shouldDisable, setShouldDisable] = useState(false)
 
     const [imgUrl, setImgUrl] = useState('')
+    const [errMsg, setErrMsg] = useState('')
 
     useEffect(() => {
         const newSocket = io.connect('http://localhost:4000')
@@ -45,6 +46,7 @@ function App() {
 
     useEffect(() => {
         if (connected && roomNum !== -1) {
+            setErrMsg('')
             getClientNum(socket, (clientNum) => {
                 socket.on(`filter-change-${roomNum}`, (ev) => {
                     if (ev !== options) {
@@ -158,12 +160,21 @@ function App() {
         })
     }
 
+    /**
+     * Used when imgUrl is not valid
+     */
+    const imgUrlErr = () => {
+        setImgUrl('')
+        setErrMsg('😟 Please enter a valid image URL')
+    }
+
     return (
         <div className="container">
             {roomNum !== -1 ? (
                 <>
                     {imgUrl ? (
                         <img
+                            onError={imgUrlErr}
                             src={imgUrl}
                             className="main-image"
                             style={getImageStyle(options)}
@@ -181,6 +192,7 @@ function App() {
                                 <button className="login-button" type="submit">
                                     Submit URL
                                 </button>
+                                {errMsg && <p className="err-msg">{errMsg}</p>}
                             </form>
                         </div>
                     )}
