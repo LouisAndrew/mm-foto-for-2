@@ -48,7 +48,6 @@ function App() {
         if (connected && roomNum !== -1) {
             setErrMsg('')
             getClientNum(socket, (newNum) => {
-                console.log({ clientNum, newNum })
                 socket.on(`filter-change-${roomNum}`, (ev) => {
                     if (ev !== options) {
                         setOptions(ev)
@@ -60,7 +59,6 @@ function App() {
                     if (ev === -1) {
                         setShouldDisable(false)
                     } else if (ev !== newNum) {
-                        console.log({ ev, newNum })
                         if (!shouldDisable) {
                             setShouldDisable(true)
                         }
@@ -68,7 +66,6 @@ function App() {
                 })
 
                 socket.on(`img-url-${roomNum}`, (ev) => {
-                    console.log(ev)
                     if (!imgUrl) {
                         setImgUrl(ev)
                     }
