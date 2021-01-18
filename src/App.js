@@ -47,7 +47,8 @@ function App() {
     useEffect(() => {
         if (connected && roomNum !== -1) {
             setErrMsg('')
-            getClientNum(socket, (clientNum) => {
+            getClientNum(socket, (newNum) => {
+                console.log({ clientNum, newNum })
                 socket.on(`filter-change-${roomNum}`, (ev) => {
                     if (ev !== options) {
                         setOptions(ev)
@@ -55,9 +56,11 @@ function App() {
                 })
 
                 socket.on(`on-focus-${roomNum}`, (ev) => {
+                    console.log(ev)
                     if (ev === -1) {
                         setShouldDisable(false)
-                    } else if (ev !== clientNum) {
+                    } else if (ev !== newNum) {
+                        console.log({ ev, newNum })
                         if (!shouldDisable) {
                             setShouldDisable(true)
                         }
@@ -77,6 +80,12 @@ function App() {
     useEffect(() => {
         emitIsFocusing()
     }, [isFocusing])
+
+    const off = (num) => {
+        socket.off(`filter-change-${num}`)
+        socket.off(`on-focus-${num}`)
+        socket.off(`img-url-${num}`)
+    }
 
     /**
      * Get client number/id from the socket io
@@ -214,6 +223,7 @@ function App() {
                             <button
                                 className="button"
                                 onClick={() => {
+                                    off(roomNum)
                                     setRoomNum((r) => r + 1)
                                 }}
                             >
@@ -223,6 +233,7 @@ function App() {
                                 <button
                                     className="button"
                                     onClick={() => {
+                                        off(roomNum)
                                         setRoomNum((r) => r - 1)
                                     }}
                                 >
